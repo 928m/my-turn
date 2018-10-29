@@ -2918,8 +2918,6 @@ let getUserName = localStorage.getItem('userName');
 let selectedUserId = null;
 let userRefs = [];
 
-// 전체인원수 갱신
-// admin 로그인 구현
 if (getUserName) {
   loginWrap.remove();
   userName = getUserName;
@@ -3086,7 +3084,6 @@ __WEBPACK_IMPORTED_MODULE_0_firebase___default.a.auth().onAuthStateChanged(funct
   if (user) {
     var uid = user.uid;
     userId = uid;
-    console.log('userId : ', userId);
   }
 });
 
