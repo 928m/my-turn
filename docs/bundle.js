@@ -3118,7 +3118,7 @@ function submitQuestion() {
     db.ref(`users/${userId}`).set({
       time: addedTime,
       name: userName,
-      isMyTurn: false,
+      isMyTurn: true,
       content: contentForm.value
     });
 
