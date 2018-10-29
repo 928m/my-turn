@@ -2936,20 +2936,6 @@ __WEBPACK_IMPORTED_MODULE_0_firebase___default.a.initializeApp(config);
 const db = __WEBPACK_IMPORTED_MODULE_0_firebase___default.a.database();
 let userRef = db.ref('/users/');
 
-// FirebaseChat.prototype.onGoogleBtnClick = function(){
-//   var googleProvider = new firebase.auth.GoogleAuthProvider();
-//   this.auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
-//   .then(this.signInWithPopup.bind(this, googleProvider))
-//   .catch(function(error) { console.error('인증 상태 설정 중 에러 발생' , error); });
-// } /** * 지속성 설정 후 sign-in 팝업창 */
-// FirebaseChat.prototype.signInWithPopup = function(provider) {
-//   var cbSignIn = function(result){ console.log('로그인 성공') }
-//   return this.auth.signInWithPopup(provider)
-//   .then(cbSignIn.bind(this))
-//   .catch(function(error) { alert('로그인에 실패하였습니다');
-//   console.error('로그인 에러',error); });
-// }
-
 if (localStorage.getItem('admin')) {
   isAdmin = true;
   userName = 'admin';
@@ -3036,27 +3022,24 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function notifyUser() {
-  return new Promise((resolve, reject) => {
-    if (Notification.permission !== "granted") {
-      Notification.requestPermission();
+  if (Notification.permission !== "granted") {
+    Notification.requestPermission();
+    resolve();
+  } else {
+    var notification = new Notification('BTS', {
+      icon: 'https://ubisafe.org/images/taehyung-transparent-icon-3.png',
+      body: `${userName} 호출`,
+      requireInteraction: true
+    });
+
+    notification.onshow = function () {
       resolve();
-    } else {
-      var notification = new Notification('BTS', {
-        icon: 'https://ubisafe.org/images/taehyung-transparent-icon-3.png',
-        body: `${userName} 호출`,
-        requireInteraction: true
-      });
+    };
 
-      notification.onshow = function () {
-        resolve();
-        alert(`${userName} 호출`);
-      };
-
-      notification.onclick = function () {
-        window.open("https://minjihee89.github.com/my-turn");
-      };
-    }
-  });
+    notification.onclick = function () {
+      window.open("https://minjihee89.github.com/my-turn");
+    };
+  }
 }
 
 function notifyAdmin() {
