@@ -3053,7 +3053,7 @@ function notifyUser() {
     var notification = new Notification('BTS', {
       icon: 'https://ubisafe.org/images/taehyung-transparent-icon-3.png',
       body: `${userName} 호출`,
-      requireInteraction: true
+      requireInteraction: false
     });
 
     notification.onclick = function () {
@@ -3118,7 +3118,7 @@ function submitQuestion() {
     db.ref(`users/${userId}`).set({
       time: addedTime,
       name: userName,
-      isMyTurn: true,
+      isMyTurn: false,
       content: contentForm.value
     });
 
