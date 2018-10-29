@@ -1,12 +1,67 @@
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>word-chain</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>MY TURN</title>
+  <link href="https://fonts.googleapis.com/css?family=Titillium+Web:200,400,600,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/xpressengine/xeicon@2.3.1/xeicon.min.css">
 </head>
 <body>
-    <h1>word-chain</h1>
-    ...
-</body>
+  <div class="wrap">
+    <header>
+      <button class="btn-logout btn">logout</button>
+    </header>
+    <section class="login-wrap">
+      <div class="inner">
+        <div>
+          <div class="box">
+            <p>
+              <b>
+                user<br>
+                name is
+              </b>
+              <span class="form-area">
+                <input type="text" class="user-login-id" placeholder="user name">
+              </span>
+            </p>
+            <div class="flip btn-user-login">
+              <a href="#self">
+                <div class="front">login</div>
+                <div class="back">user login</div>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="box admin">
+            <div class="btn-admin-login">
+              <button>
+                admin login
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <article class="content">
+      <section class="wating-count-area">
+        <h3>
+          <b></b>
+          <span></span>
+        </h3>
+        <p></p>
+      </section>
+      <section>
+        <ul class="applicant-list">
+        </ul>
+      </section>
+    </article>
+    <div class="request-area">
+      <input type="text" class="content-form" placeholder="질문내용">
+      <button type="button" class="btn-request btn">queue up</button>
+    </div>
+  </div>
+<script type="text/javascript" src="bundle.js"></script></body>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </html>
