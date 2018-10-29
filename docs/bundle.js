@@ -2973,20 +2973,11 @@ if (localStorage.getItem('admin')) {
 btnAdminLogin.addEventListener('click', () => {
   var provider = new __WEBPACK_IMPORTED_MODULE_0_firebase___default.a.auth.GithubAuthProvider();
 
-  // firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-  // .then(function() {
-  //   return firebase.auth().signInWithRedirect(provider);
-  // })
-  // .catch(function(error) {
-  //   var errorMessage = error.message;
-  //   alert(errorMessage);
-  // });
-
   __WEBPACK_IMPORTED_MODULE_0_firebase___default.a.auth().signInWithPopup(provider).then(function(result) {
     var token = result.credential.accessToken;
     var user = result.user;
 
-    if (user.email === 'minjihee89@naver.com') {
+    if (user.email === 'ken123777@gmail.com' || user.email === 'minjihee89@naver.com') {
       localStorage.setItem('admin', {
         email: user.email,
         name: user.displayName
@@ -3010,7 +3001,7 @@ btnAdminLogin.addEventListener('click', () => {
         drawWatingUserList(userRefs);
       });
     } else {
-      alert('노권한')
+      alert('노권한');
       document.querySelector('body').classList.remove('admin');
     }
   }).catch(function(error) {
@@ -3045,19 +3036,27 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function notifyUser() {
-  if (Notification.permission !== "granted")
-  Notification.requestPermission();
-  else {
-    var notification = new Notification('BTS', {
-      icon: 'https://ubisafe.org/images/taehyung-transparent-icon-3.png',
-      body: `${userName} 호출`,
-      requireInteraction: false
-    });
+  return new Promise((resolve, reject) => {
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+      resolve();
+    } else {
+      var notification = new Notification('BTS', {
+        icon: 'https://ubisafe.org/images/taehyung-transparent-icon-3.png',
+        body: `${userName} 호출`,
+        requireInteraction: true
+      });
 
-    notification.onclick = function () {
-      window.open("https://minjihee89.github.com");
-    };
-  }
+      notification.onshow = function () {
+        resolve();
+        alert(`${userName} 호출`);
+      };
+
+      notification.onclick = function () {
+        window.open("https://minjihee89.github.com/my-turn");
+      };
+    }
+  });
 }
 
 function notifyAdmin() {
@@ -3191,8 +3190,9 @@ function drawWatingUserList(userRefs) {
 
     if (watingUserInfo.isMyTurn) {
       if (watingUserInfo.key === userId) {
-        notifyUser();
-        alert(`${userName} 호출`);
+        notifyUser().then(() => {
+          alert(`${userName} 호출`);
+        });
       }
       liEl.classList.add('can-remove');
     }
