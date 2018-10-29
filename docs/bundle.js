@@ -3195,6 +3195,7 @@ function drawWatingUserList(userRefs) {
     if (watingUserInfo.isMyTurn) {
       if (watingUserInfo.key === userId) {
         notifyUser();
+        alert(`${userName} 호출`);
       }
       liEl.classList.add('can-remove');
     }
