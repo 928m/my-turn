@@ -2894,7 +2894,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_firebase__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_firebase___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_firebase__);
 
-let userId = null;
 const requestForm = document.querySelector('.request-area');
 const btnRequest = document.querySelector('.btn-request');
 const contentForm = document.querySelector('.content-form');
@@ -2910,7 +2909,8 @@ const descriptionEl = watingWrap.querySelector('p');
 const userNameForm = document.querySelector('.user-login-id');
 const userNameEl = document.querySelector('.user-name');
 const btnAdminLogin = document.querySelector('.btn-admin-login button');
-const btnUserLogin = document.querySelector('.btn-user-login a');
+const btnUserLogin = document.querySelector('.btn-user-login button');
+let userId = null;
 let userName = null;
 let isAdmin = false;
 let userLength = null;
@@ -3010,7 +3010,6 @@ btnLogout.addEventListener('click', () => {
   }
 });
 
-// notification
 document.addEventListener('DOMContentLoaded', function () {
   if (!Notification) {
     alert('Desktop notifications not available in your browser. Try Chromium.');
@@ -3021,7 +3020,7 @@ document.addEventListener('DOMContentLoaded', function () {
     Notification.requestPermission();
 });
 
-function notifyUser() {
+function notifyUser(userId) {
   if (Notification.permission !== "granted") {
     Notification.requestPermission();
     resolve();
@@ -3031,10 +3030,6 @@ function notifyUser() {
       body: `${userName} 호출`,
       requireInteraction: true
     });
-
-    notification.onshow = function () {
-      resolve();
-    };
 
     notification.onclick = function () {
       window.open("https://minjihee89.github.com/my-turn");
@@ -3093,11 +3088,11 @@ function submitQuestion() {
     let addedTime = new Date();
     addedTime = `${addedTime.getFullYear()}-${addedTime.getMonth() + 1}-${addedTime.getDate()} ${addedTime.getHours()}:${addedTime.getMinutes()}:${addedTime.getSeconds()}`;
 
-    // db에 사용자 추가
     db.ref(`users/${userId}`).set({
       time: addedTime,
       name: userName,
       isMyTurn: false,
+      isNoti: false,
       content: contentForm.value
     });
 
@@ -3122,6 +3117,7 @@ function getUserRef() {
     }
 
     userLength = userRefs.length;
+    console.log(userRefs);
 
     drawWatingUserList(userRefs);
   });
@@ -3131,7 +3127,6 @@ getUserRef();
 function drawWatingUserList(userRefs) {
   let count = 0;
   let myturn = null;
-  applicantList.innerHTML = '';
 
   userRefs.sort((a, b) => {
     if (new Date(a.time) > new Date(b.time)) {
@@ -3144,9 +3139,26 @@ function drawWatingUserList(userRefs) {
   });
 
   for (let i = 0; i < userRefs.length; i++) {
+    let watingUserInfo = userRefs[i];
+    if (watingUserInfo.isMyTurn && !watingUserInfo.isNoti && watingUserInfo.key === userId) {
+      notifyUser();
+
+      db.ref(`/users/${userId}`).update({
+        isNoti: true
+      });
+    }
+  }
+
+  applicantList.innerHTML = '';
+  for (let i = 0; i < userRefs.length; i++) {
     count++;
     let watingUserInfo = userRefs[i];
     const liEl = document.createElement('li');
+
+    if (watingUserInfo.isMyTurn) {
+      liEl.classList.add('can-remove');
+    }
+
     const nameEl = document.createElement('span');
     const timeEl = document.createElement('span');
     nameEl.classList.add('name');
@@ -3169,15 +3181,6 @@ function drawWatingUserList(userRefs) {
       timeEl.textContent = `약 ${parseInt(timeGap/1000/60)} 분 전`;
     } else {
       timeEl.textContent = `방금 전`;
-    }
-
-    if (watingUserInfo.isMyTurn) {
-      if (watingUserInfo.key === userId) {
-        notifyUser().then(() => {
-          alert(`${userName} 호출`);
-        });
-      }
-      liEl.classList.add('can-remove');
     }
 
     liEl.appendChild(timeEl);
@@ -3215,6 +3218,7 @@ function drawWatingUserList(userRefs) {
       if (isAdmin) {
         if (ev.target.classList.contains('btn-noti') || ev.target.parentNode.classList.contains('btn-noti')) {
           selectedUserId = ev.currentTarget.dataset.user;
+
           let userIdRef = db.ref(`/users/${selectedUserId}`);
 
           userIdRef.update({
@@ -3248,6 +3252,7 @@ function drawWatingUserList(userRefs) {
     descriptionEl.appendChild(nameEl);
     descriptionEl.appendChild(countEl);
     descriptionEl.appendChild(turnEl);
+    descriptionEl.classList.remove('not-queue');
     myCntEl.textContent = `${myturn}`;
     totalCntEl.textContent = ` / ${count}`;
     totalCntEl.classList.add('on');
@@ -48635,7 +48640,7 @@ exports = module.exports = __webpack_require__(23)(undefined);
 
 
 // module
-exports.push([module.i, "* {\n  margin: 0;\n  padding: 0;\n}\nbody {\n  font-size: 12px;\n  font-family: 'Titillium Web', sans-serif;\n  background: #ffd321;\n}\nbody.admin {\n  background: #00332a;\n}\nbody.admin .applicant-list li {\n  cursor: pointer;\n  padding-right: 40px;\n}\nbody.admin .applicant-list li .question-cont {\n  max-height: 0;\n}\nbody.admin .applicant-list li .time {\n  margin-right: 10px;\n}\nbody.admin .applicant-list li .btn-noti {\n  width: 30px;\n  height: 30px;\n  border-radius: 50%;\n  position: absolute;\n  top: 26px;\n  right: -15px;\n  margin-top: -15px;\n  font-size: 20px;\n  cursor: pointer;\n  background: #181818;\n  color: #ffffff;\n  line-height: 30px;\n  border: 0;\n  box-sizing: border-box;\n  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);\n  opacity: 0;\n  transition: all .5s;\n}\nbody.admin .applicant-list li:hover {\n  background: #f5f5f5;\n}\nbody.admin .applicant-list li:hover .btn-noti {\n  opacity: 1;\n}\nh1,\nh2,\nh3,\nh4,\nh5,\nh6 {\n  font-size: 12px;\n}\na,\na:visited {\n  text-decoration: none;\n  color: #181818;\n}\nul {\n  list-style: none;\n}\ninput {\n  display: inline-block;\n  padding: 10px;\n  border: 2px solid #181818;\n  font-size: 14px;\n  text-align: center;\n  outline: none;\n}\na {\n  outline: none;\n}\n.btn {\n  display: inline-block;\n  padding: 0 15px;\n  line-height: 40px;\n  border: 0;\n  font-size: 12px;\n  text-transform: uppercase;\n  cursor: pointer;\n}\n.wrap {\n  width: 100%;\n  height: 100%;\n  padding: 50px 0;\n  box-sizing: border-box;\n  text-align: center;\n}\n.wrap header {\n  position: fixed;\n  top: 30px;\n  left: 30px;\n  z-index: 10;\n}\n.wrap header .btn-logout {\n  background: #181818;\n  color: #ffffff;\n  border-radius: 40px;\n  box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);\n}\n.wrap .login-wrap {\n  display: flex;\n  align-items: center;\n  justify-items: center;\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 100;\n  background: #ffd321;\n}\n.wrap .login-wrap .inner {\n  padding: 0 50px;\n  background: #ffffff;\n  margin: 0 auto;\n  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);\n}\n.wrap .login-wrap .inner > div {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  text-align: center;\n  padding: 50px 0;\n  border-top: 1px dashed #181818;\n}\n.wrap .login-wrap .inner > div:first-child {\n  border-top: 0;\n}\n.wrap .login-wrap .inner > div .form-area:before {\n  display: inline-block;\n  content: '';\n  width: 150px;\n  height: 1px;\n  background: #181818;\n  margin: 0 20px 0 0;\n}\n.wrap .login-wrap .inner > div .form-area .user-login-id {\n  display: inline-block;\n  width: 200px;\n  height: 64px;\n  border: 0;\n  font-family: 'Titillium Web', sans-serif;\n  font-size: 35px;\n  font-weight: 300;\n  padding: 0;\n  vertical-align: middle;\n  transition: all .5s;\n}\n.wrap .login-wrap .inner > div .form-area .user-login-id::placeholder {\n  font-weight: 300;\n  color: blue;\n}\n.wrap .login-wrap .inner > div p {\n  text-align: left;\n  margin: 0 0 20px;\n}\n.wrap .login-wrap .inner > div p b {\n  display: block;\n  font-size: 35px;\n  line-height: 1.2;\n  font-weight: 300;\n  text-transform: uppercase;\n  margin: 0 0 10px;\n}\n.wrap .login-wrap .inner > div p span {\n  display: block;\n}\n.wrap .login-wrap .inner > div .admin p b {\n  font-size: 14px;\n}\n.wrap .login-wrap .inner > div .admin .btn-admin-login button {\n  display: inline-block;\n  width: 150px;\n  height: 50px;\n  font-size: 13px;\n  border: 0;\n  background: #ffffff;\n  font-weight: 300;\n  text-transform: uppercase;\n  color: #999999;\n  cursor: pointer;\n  position: relative;\n  outline: none;\n  transition: all .5s;\n}\n.wrap .login-wrap .inner > div .admin .btn-admin-login button:hover {\n  width: 180px;\n  padding-right: 30px;\n  background: #181818;\n  color: #ffffff;\n}\n.wrap .login-wrap .inner > div .admin .btn-admin-login button:hover:after {\n  transform: scaleX(1);\n}\n.wrap .login-wrap .inner > div .admin .btn-admin-login button:after {\n  display: inline-block;\n  content: '';\n  width: 80px;\n  height: 2px;\n  background: #ffd321;\n  position: absolute;\n  top: 50%;\n  right: -50px;\n  margin: -1px 0 0;\n  transform: scaleX(0);\n  transform-origin: left;\n  transition: all .3s;\n}\n.wrap .login-wrap .inner .btn {\n  margin: 30px 0 0;\n}\n.wrap .login-wrap .inner .flip {\n  width: 200px;\n  height: 64px;\n  perspective: 500px;\n  text-transform: uppercase;\n  float: right;\n}\n.wrap .login-wrap .inner .flip a {\n  font-weight: 300;\n  margin: 0;\n  padding: 0;\n  width: 100%;\n  height: 100%;\n  position: absolute;\n  top: 0;\n  left: 0;\n  transform-style: preserve-3d;\n  transform: translateZ(-25px);\n  transition: transform 0.3s;\n  cursor: pointer;\n}\n.wrap .login-wrap .inner .flip a .front,\n.wrap .login-wrap .inner .flip a .back {\n  margin: 0;\n  font-size: 20px;\n  width: 100%;\n  height: 64px;\n  line-height: 64px;\n  position: absolute;\n  text-align: center;\n}\n.wrap .login-wrap .inner .flip a .front {\n  background-color: #181818;\n  color: #fff;\n  transform: rotateY(0) translateZ(32px);\n}\n.wrap .login-wrap .inner .flip a .back {\n  background-color: rgba(255, 255, 255, 0);\n  color: rgba(34, 34, 34, 0);\n  transform: rotateX(90deg) translateZ(32px);\n  overflow: hidden;\n}\n.wrap .login-wrap .inner .flip a .back:after {\n  content: '';\n  position: absolute;\n  top: -32%;\n  left: -10%;\n  width: 120%;\n  height: 50%;\n  background: #181818;\n  transform: rotate(8deg);\n  transition: all 0.5s ease;\n  transition-delay: 0.15s;\n}\n.wrap .login-wrap .inner .flip a:hover,\n.wrap .login-wrap .inner .flip a:focus {\n  transform: translateZ(-32px) rotateX(-90deg);\n}\n.wrap .login-wrap .inner .flip a:hover .front,\n.wrap .login-wrap .inner .flip a:focus .front {\n  background: #000;\n  transition: all 0.8s ease;\n}\n.wrap .login-wrap .inner .flip a:hover .back,\n.wrap .login-wrap .inner .flip a:focus .back {\n  color: #181818;\n  transition: color 0.4s linear;\n  background: #ffd321;\n}\n.wrap .login-wrap .inner .flip a:hover .back:after,\n.wrap .login-wrap .inner .flip a:focus .back:after {\n  transform: rotate(6deg) translate(100px, -32px);\n}\n.wrap .wating-count-area {\n  text-align: center;\n}\n.wrap .wating-count-area h3 {\n  display: inline-block;\n  font-size: 30px;\n  font-weight: 300;\n  position: relative;\n}\n.wrap .wating-count-area h3 b {\n  display: inline-block;\n  width: 150px;\n  height: 150px;\n  line-height: 150px;\n  background: #181818;\n  color: #ffffff;\n  border-radius: 50%;\n  text-align: center;\n  font-size: 50px;\n  font-weight: 300;\n  margin: 0 0 30px;\n  transition: all .5s;\n}\n.wrap .wating-count-area h3 span {\n  display: inline-block;\n  position: absolute;\n  top: 0;\n  left: 105%;\n  min-width: 150px;\n  text-align: left;\n  line-height: 150px;\n  opacity: 0;\n  transform: translateX(-50px);\n  transition: all .5s;\n}\n.wrap .wating-count-area h3 span.on {\n  transform: translateX(0);\n  opacity: 1;\n}\n.wrap .wating-count-area p {\n  font-size: 40px;\n  line-height: 1.2;\n  padding: 0 0 40px;\n}\n.wrap .wating-count-area p span {\n  display: block;\n  text-align: left;\n}\n.wrap .wating-count-area p span:before {\n  display: none;\n}\n.wrap .wating-count-area p span:nth-child(2) {\n  text-indent: 150px;\n  position: relative;\n}\n.wrap .wating-count-area p span:nth-child(2):before {\n  display: block;\n  content: '';\n  width: 120px;\n  height: 5px;\n  background: #181818;\n  position: absolute;\n  top: 50%;\n  left: 0;\n}\n.wrap .content {\n  display: inline-block;\n  width: 450px;\n  box-sizing: border-box;\n  padding: 50px;\n  background: #ffffff;\n  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);\n  margin: 0 0 50px;\n}\n.wrap .content section {\n  padding: 30px 0 0;\n  border-top: 1px dashed #181818;\n}\n.wrap .content section:first-child {\n  padding-top: 0;\n  border-top: 0;\n}\n.wrap .content .applicant-list {\n  margin: 0 auto 30px;\n}\n.wrap .content .applicant-list li {\n  display: block;\n  text-align: left;\n  font-size: 15px;\n  line-height: 22px;\n  padding: 15px;\n  margin: 20px 0 0;\n  opacity: 1;\n  position: relative;\n  transition: all .3s;\n}\n.wrap .content .applicant-list li:hover .question-cont {\n  max-height: 200px;\n}\n.wrap .content .applicant-list li .question-cont {\n  overflow: hidden;\n  transition: all .5s;\n}\n.wrap .content .applicant-list li .question-cont span {\n  display: block;\n  max-height: 200px;\n  padding: 20px;\n  box-sizing: border-box;\n  color: #181818;\n  background: #ffffff;\n  margin: 20px 0 0;\n  overflow-x: hidden;\n  overflow-y: auto;\n}\n.wrap .content .applicant-list li .btn-remove {\n  display: none;\n  width: 30px;\n  height: 30px;\n  border-radius: 50%;\n  position: absolute;\n  top: 26px;\n  right: -15px;\n  margin-top: -15px;\n  font-size: 20px;\n  cursor: pointer;\n  background: #ffffff;\n  line-height: 30px;\n  border: 0;\n  border: 3px solid #181818;\n  box-sizing: border-box;\n  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);\n}\n.wrap .content .applicant-list li .btn-remove:before {\n  display: block;\n  content: '';\n  width: 12px;\n  height: 2px;\n  background: #181818;\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  margin: -1px 0 0 -6px;\n}\n.wrap .content .applicant-list li.can-remove {\n  padding-right: 20px;\n}\n.wrap .content .applicant-list li.can-remove .btn-remove {\n  display: block;\n}\n.wrap .content .applicant-list li.on {\n  transform: translateY(20px);\n  opacity: 0;\n}\n.wrap .content .applicant-list li.me {\n  background: #191919;\n  color: #ffffff;\n}\n.wrap .content .applicant-list li.me:before {\n  display: block;\n  content: '';\n  width: 20px;\n  height: 20px;\n  position: absolute;\n  top: -7px;\n  left: -7px;\n  background: #fc273b;\n  border-radius: 50%;\n  box-shadow: 2px 2px 4x rgba(0, 0, 0, 0.4);\n}\n.wrap .content .applicant-list li .time {\n  float: right;\n}\n.wrap .content .applicant-list li:first-child {\n  margin-top: 0;\n}\n.wrap .request-area {\n  position: fixed;\n  bottom: 30px;\n  left: 50%;\n  z-index: 10;\n  width: 70%;\n  background: #ffffff;\n  text-align: right;\n  box-sizing: border-box;\n  margin: 0 0 0 -35%;\n  border-radius: 70px;\n  overflow: hidden;\n  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);\n}\n.wrap .request-area .content-form {\n  display: inline-block;\n  padding: 5px 100px 5px 5px;\n  width: 100%;\n  height: 50px;\n  border: 0;\n  vertical-align: middle;\n  box-sizing: border-box;\n}\n.wrap .request-area .request-form {\n  display: block;\n  margin: 0 auto 30px;\n}\n.wrap .request-area .btn-request {\n  position: absolute;\n  top: 0;\n  right: 0;\n  height: 50px;\n  vertical-align: middle;\n  background: #181818;\n  color: #ffffff;\n  border-radius: 50px;\n}\n", ""]);
+exports.push([module.i, "* {\n  margin: 0;\n  padding: 0;\n}\nbody {\n  font-size: 12px;\n  font-family: 'Titillium Web', sans-serif;\n  background: #ffd321;\n}\nbody.admin {\n  background: #00332a;\n}\nbody.admin .applicant-list li {\n  cursor: pointer;\n  padding-right: 40px;\n}\nbody.admin .applicant-list li .question-cont {\n  max-height: 0;\n}\nbody.admin .applicant-list li .time {\n  margin-right: 10px;\n}\nbody.admin .applicant-list li .btn-noti {\n  width: 30px;\n  height: 30px;\n  border-radius: 50%;\n  position: absolute;\n  top: 26px;\n  right: -15px;\n  margin-top: -15px;\n  font-size: 20px;\n  cursor: pointer;\n  background: #181818;\n  color: #ffffff;\n  line-height: 30px;\n  border: 0;\n  box-sizing: border-box;\n  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);\n  opacity: 0;\n  transition: all .5s;\n}\nbody.admin .applicant-list li:hover {\n  background: #f5f5f5;\n}\nbody.admin .applicant-list li:hover .btn-noti {\n  opacity: 1;\n}\nh1,\nh2,\nh3,\nh4,\nh5,\nh6 {\n  font-size: 12px;\n}\na,\na:visited {\n  text-decoration: none;\n  color: #181818;\n}\nul {\n  list-style: none;\n}\ninput {\n  display: inline-block;\n  padding: 10px;\n  border: 2px solid #181818;\n  font-size: 14px;\n  text-align: center;\n  outline: none;\n}\na {\n  outline: none;\n}\n.btn {\n  display: inline-block;\n  padding: 0 15px;\n  line-height: 40px;\n  border: 0;\n  font-size: 12px;\n  text-transform: uppercase;\n  cursor: pointer;\n}\n.wrap {\n  width: 100%;\n  height: 100%;\n  padding: 50px 0;\n  box-sizing: border-box;\n  text-align: center;\n}\n.wrap header {\n  position: fixed;\n  top: 30px;\n  left: 30px;\n  z-index: 10;\n}\n.wrap header .btn-logout {\n  background: #181818;\n  color: #ffffff;\n  border-radius: 40px;\n  box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);\n}\n.wrap .login-wrap {\n  display: flex;\n  align-items: center;\n  justify-items: center;\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 100;\n  background: #ffd321;\n}\n.wrap .login-wrap .inner {\n  padding: 0 50px;\n  background: #ffffff;\n  margin: 0 auto;\n  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);\n}\n.wrap .login-wrap .inner > div {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  text-align: center;\n  padding: 50px 0;\n  border-top: 1px dashed #181818;\n}\n.wrap .login-wrap .inner > div:first-child {\n  border-top: 0;\n}\n.wrap .login-wrap .inner > div .form-area:before {\n  display: inline-block;\n  content: '';\n  width: 150px;\n  height: 1px;\n  background: #181818;\n  margin: 0 20px 0 0;\n}\n.wrap .login-wrap .inner > div .form-area .user-login-id {\n  display: inline-block;\n  width: 200px;\n  height: 64px;\n  border: 0;\n  font-family: 'Titillium Web', sans-serif;\n  font-size: 35px;\n  font-weight: 300;\n  padding: 0;\n  vertical-align: middle;\n  transition: all .5s;\n}\n.wrap .login-wrap .inner > div .form-area .user-login-id::placeholder {\n  font-weight: 300;\n  color: blue;\n}\n.wrap .login-wrap .inner > div p {\n  text-align: left;\n  margin: 0 0 20px;\n}\n.wrap .login-wrap .inner > div p b {\n  display: block;\n  font-size: 35px;\n  line-height: 1.2;\n  font-weight: 300;\n  text-transform: uppercase;\n  margin: 0 0 10px;\n}\n.wrap .login-wrap .inner > div p span {\n  display: block;\n}\n.wrap .login-wrap .inner > div .admin p b {\n  font-size: 14px;\n}\n.wrap .login-wrap .inner > div .admin .btn-admin-login button {\n  display: inline-block;\n  width: 150px;\n  height: 50px;\n  font-size: 13px;\n  border: 0;\n  background: #ffffff;\n  font-weight: 300;\n  text-transform: uppercase;\n  color: #999999;\n  cursor: pointer;\n  position: relative;\n  outline: none;\n  transition: all .5s;\n}\n.wrap .login-wrap .inner > div .admin .btn-admin-login button:hover {\n  width: 180px;\n  padding-right: 30px;\n  background: #181818;\n  color: #ffffff;\n}\n.wrap .login-wrap .inner > div .admin .btn-admin-login button:hover:after {\n  transform: scaleX(1);\n}\n.wrap .login-wrap .inner > div .admin .btn-admin-login button:after {\n  display: inline-block;\n  content: '';\n  width: 80px;\n  height: 2px;\n  background: #ffd321;\n  position: absolute;\n  top: 50%;\n  right: -50px;\n  margin: -1px 0 0;\n  transform: scaleX(0);\n  transform-origin: left;\n  transition: all .3s;\n}\n.wrap .login-wrap .inner .btn {\n  margin: 30px 0 0;\n}\n.wrap .login-wrap .inner .flip {\n  width: 200px;\n  height: 64px;\n  perspective: 500px;\n  text-transform: uppercase;\n  float: right;\n}\n.wrap .login-wrap .inner .flip button {\n  font-weight: 300;\n  margin: 0;\n  padding: 0;\n  width: 100%;\n  height: 100%;\n  position: absolute;\n  top: 0;\n  left: 0;\n  transform-style: preserve-3d;\n  transform: translateZ(-25px);\n  transition: transform 0.3s;\n  cursor: pointer;\n  border: 0;\n  background: transparent;\n}\n.wrap .login-wrap .inner .flip button:focus {\n  outline: none;\n}\n.wrap .login-wrap .inner .flip button .front,\n.wrap .login-wrap .inner .flip button .back {\n  margin: 0;\n  font-size: 20px;\n  width: 100%;\n  height: 64px;\n  line-height: 64px;\n  position: absolute;\n  top: 0;\n  left: 0;\n  text-align: center;\n}\n.wrap .login-wrap .inner .flip button .front {\n  background-color: #181818;\n  color: #fff;\n  transform: rotateY(0) translateZ(32px);\n}\n.wrap .login-wrap .inner .flip button .back {\n  background-color: rgba(255, 255, 255, 0);\n  color: rgba(34, 34, 34, 0);\n  transform: rotateX(90deg) translateZ(32px);\n  overflow: hidden;\n}\n.wrap .login-wrap .inner .flip button .back:after {\n  content: '';\n  position: absolute;\n  top: -32%;\n  left: -10%;\n  width: 120%;\n  height: 50%;\n  background: #181818;\n  transform: rotate(8deg);\n  transition: all 0.5s ease;\n  transition-delay: 0.15s;\n}\n.wrap .login-wrap .inner .flip button:hover,\n.wrap .login-wrap .inner .flip button:focus {\n  transform: translateZ(-32px) rotateX(-90deg);\n}\n.wrap .login-wrap .inner .flip button:hover .front,\n.wrap .login-wrap .inner .flip button:focus .front {\n  background: #000;\n  transition: all 0.8s ease;\n}\n.wrap .login-wrap .inner .flip button:hover .back,\n.wrap .login-wrap .inner .flip button:focus .back {\n  color: #181818;\n  transition: color 0.4s linear;\n  background: #ffd321;\n}\n.wrap .login-wrap .inner .flip button:hover .back:after,\n.wrap .login-wrap .inner .flip button:focus .back:after {\n  transform: rotate(6deg) translate(100px, -32px);\n}\n.wrap .wating-count-area {\n  text-align: center;\n}\n.wrap .wating-count-area h3 {\n  display: inline-block;\n  font-size: 30px;\n  font-weight: 300;\n  position: relative;\n}\n.wrap .wating-count-area h3 b {\n  display: inline-block;\n  width: 150px;\n  height: 150px;\n  line-height: 150px;\n  background: #181818;\n  color: #ffffff;\n  border-radius: 50%;\n  text-align: center;\n  font-size: 50px;\n  font-weight: 300;\n  margin: 0 0 30px;\n  transition: all .5s;\n}\n.wrap .wating-count-area h3 span {\n  display: inline-block;\n  position: absolute;\n  top: 0;\n  left: 105%;\n  min-width: 150px;\n  text-align: left;\n  line-height: 150px;\n  opacity: 0;\n  transform: translateX(-50px);\n  transition: all .5s;\n}\n.wrap .wating-count-area h3 span.on {\n  transform: translateX(0);\n  opacity: 1;\n}\n.wrap .wating-count-area p {\n  font-size: 40px;\n  line-height: 1.2;\n  padding: 0 0 40px;\n}\n.wrap .wating-count-area p.not-queue span {\n  display: inline-block;\n}\n.wrap .wating-count-area p span {\n  display: block;\n  text-align: left;\n}\n.wrap .wating-count-area p span:before {\n  display: none;\n}\n.wrap .wating-count-area p span:nth-child(2) {\n  text-indent: 150px;\n  position: relative;\n}\n.wrap .wating-count-area p span:nth-child(2):before {\n  display: block;\n  content: '';\n  width: 120px;\n  height: 5px;\n  background: #181818;\n  position: absolute;\n  top: 50%;\n  left: 0;\n}\n.wrap .content {\n  display: inline-block;\n  width: 450px;\n  box-sizing: border-box;\n  padding: 50px;\n  background: #ffffff;\n  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);\n  margin: 0 0 50px;\n}\n.wrap .content section {\n  padding: 30px 0 0;\n  border-top: 1px dashed #181818;\n}\n.wrap .content section:first-child {\n  padding-top: 0;\n  border-top: 0;\n}\n.wrap .content .applicant-list {\n  margin: 0 auto 30px;\n}\n.wrap .content .applicant-list li {\n  display: block;\n  text-align: left;\n  font-size: 15px;\n  line-height: 22px;\n  padding: 15px;\n  margin: 20px 0 0;\n  opacity: 1;\n  position: relative;\n  transition: all .3s;\n}\n.wrap .content .applicant-list li:hover .question-cont {\n  max-height: 200px;\n}\n.wrap .content .applicant-list li .question-cont {\n  overflow: hidden;\n  transition: all .5s;\n}\n.wrap .content .applicant-list li .question-cont span {\n  display: block;\n  max-height: 200px;\n  padding: 20px;\n  box-sizing: border-box;\n  color: #181818;\n  background: #ffffff;\n  margin: 20px 0 0;\n  overflow-x: hidden;\n  overflow-y: auto;\n}\n.wrap .content .applicant-list li .btn-remove {\n  display: none;\n  width: 30px;\n  height: 30px;\n  border-radius: 50%;\n  position: absolute;\n  top: 26px;\n  right: -15px;\n  margin-top: -15px;\n  font-size: 20px;\n  cursor: pointer;\n  background: #ffffff;\n  line-height: 30px;\n  border: 0;\n  border: 3px solid #181818;\n  box-sizing: border-box;\n  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);\n}\n.wrap .content .applicant-list li .btn-remove:before {\n  display: block;\n  content: '';\n  width: 12px;\n  height: 2px;\n  background: #181818;\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  margin: -1px 0 0 -6px;\n}\n.wrap .content .applicant-list li.can-remove {\n  padding-right: 20px;\n}\n.wrap .content .applicant-list li.can-remove .btn-remove {\n  display: block;\n}\n.wrap .content .applicant-list li.on {\n  transform: translateY(20px);\n  opacity: 0;\n}\n.wrap .content .applicant-list li.me {\n  background: #191919;\n  color: #ffffff;\n}\n.wrap .content .applicant-list li.me:before {\n  display: block;\n  content: '';\n  width: 20px;\n  height: 20px;\n  position: absolute;\n  top: -7px;\n  left: -7px;\n  background: #fc273b;\n  border-radius: 50%;\n  box-shadow: 2px 2px 4x rgba(0, 0, 0, 0.4);\n}\n.wrap .content .applicant-list li .time {\n  float: right;\n}\n.wrap .content .applicant-list li:first-child {\n  margin-top: 0;\n}\n.wrap .request-area {\n  position: fixed;\n  bottom: 30px;\n  left: 50%;\n  z-index: 10;\n  width: 70%;\n  background: #ffffff;\n  text-align: right;\n  box-sizing: border-box;\n  margin: 0 0 0 -35%;\n  border-radius: 70px;\n  overflow: hidden;\n  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);\n}\n.wrap .request-area .content-form {\n  display: inline-block;\n  padding: 5px 100px 5px 5px;\n  width: 100%;\n  height: 50px;\n  border: 0;\n  vertical-align: middle;\n  box-sizing: border-box;\n}\n.wrap .request-area .request-form {\n  display: block;\n  margin: 0 auto 30px;\n}\n.wrap .request-area .btn-request {\n  position: absolute;\n  top: 0;\n  right: 0;\n  height: 50px;\n  vertical-align: middle;\n  background: #181818;\n  color: #ffffff;\n  border-radius: 50px;\n}\n", ""]);
 
 // exports
 
